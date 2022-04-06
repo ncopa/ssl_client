@@ -98,7 +98,7 @@ void do_poll(struct pollfd *fds, int nfds)
 	}
 }
 
-static void copy_loop(SSL *ssl, int sfd, int eofexit)
+static void copy_loop(SSL *ssl, int sfd)
 {
 	struct pollfd fds[2] = {
 		{ .fd = STDIN_FILENO,	.events = POLLIN },
@@ -109,8 +109,6 @@ static void copy_loop(SSL *ssl, int sfd, int eofexit)
 		do_poll(fds, 2);
 		if (fds[0].revents) {
 			copy_from_stdin_to_tls(ssl, &fds[0].fd);
-			if (eofexit && fds[0].fd == -1)
-				break;
 		}
 
 		if (fds[1].revents && copy_from_tls_to_stdout(ssl))
@@ -119,7 +117,7 @@ static void copy_loop(SSL *ssl, int sfd, int eofexit)
 }
 
 void usage(const char *prog, int ret) {
-	printf("usage: %s [-s FD] [-I] [-e] -n SNI\n", prog);
+	printf("usage: %s [-s FD] [-I] -n SNI\n", prog);
 	exit(ret);
 }
 
@@ -128,15 +126,11 @@ int main(int argc, char *argv[])
 	int c, sfd = 1;;
 	const char *sni = NULL;
 	int insecure = 0;
-	int localeofexit = 0;
 	SSL_CTX *ctx;
 	SSL *ssl = NULL;
 
-	while ((c = getopt(argc, argv, "ehs:n:I")) != -1) {
+	while ((c = getopt(argc, argv, "hs:n:I")) != -1) {
 		switch (c) {
-		case 'e':
-			localeofexit = 1;
-			break;
 		case 'h':
 			usage(argv[0], 0);
 			break;
@@ -182,7 +176,7 @@ int main(int argc, char *argv[])
 	if (SSL_connect(ssl) != 1)
 		ssl_fatal("SSL_connect");
 
-	copy_loop(ssl, sfd, localeofexit);
+	copy_loop(ssl, sfd);
 
 	SSL_CTX_free(ctx);
 	return 0;
