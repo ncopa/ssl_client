@@ -1,14 +1,20 @@
 
-CFLAGS ?= -Werror
+CFLAGS ?= -Werror -Wall
 
-LIBTLS_CFLAGS = $(shell pkg-config --cflags libtls)
-LIBTLS_LIBS = $(shell pkg-config --libs libtls)
+LIBSSL_CFLAGS := $(shell pkg-config --cflags libssl)
+LIBSSL_LIBS := $(shell pkg-config --libs libssl)
+
+LIBCRYPTO_CFLAGS := $(shell pkg-config --cflags libcrypto)
+LIBCRYPTO_LIBS := $(shell pkg-config --libs libcrypto)
+
+CFLAGS += $(LIBCRYPTO_CFLAGS) $(LIBSSL_CFLAGS)
+LIBS = $(LIBCRYPTO_LIBS) $(LIBSSL_LIBS)
 
 busybox = busybox
 wget = PATH="$(CURDIR):$(PATH)" $(busybox) wget -q -O /dev/null
 
 ssl_client: ssl_client.o
-	$(CC) $(LIBTLS_CFLAGS) $(CFLAGS) -o $@ $< $(LIBTLS_LIBS) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(LIBS)
 
 .PHONY: clean
 clean:
