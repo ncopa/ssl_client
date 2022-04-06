@@ -24,6 +24,7 @@ test: ssl_client
 	$(wget) https://badssl.com && echo ok
 	$(wget) https://tls-v1-2.badssl.com:1012/ && echo ok
 	$(wget) https://rsa4096.badssl.com/ && echo ok
+	$(wget) --no-check-certificate https://expired.badssl.com/ && echo ok
 	! $(wget) https://expired.badssl.com/ && echo ok
 	! $(wget) https://wrong.host.badssl.com/ && echo ok
 	! $(wget) https://self-signed.badssl.com/ && echo ok
